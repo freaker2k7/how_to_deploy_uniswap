@@ -67,278 +67,302 @@ var URL = "";
     var _feeToSetter = accounts[2];
     // Uniswap V2
     // V2 Factory Deployment
-    console.log("Deploying Uniswap V2 now, please wait ...");
-    let uniswapV2;
-    uniswapV2 = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapV2Bytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapV2Instance = new web3.eth.Contract(uniswapV2Abi, uniswapV2.contractAddress);
-    uniswapV2Instance.deploy({
-            data: uniswapV2Bytecode,
-            arguments: [_feeToSetter]
-        })
-        .send({
+    
+    await new Promise(async (resolve, reject) => {
+        console.log("Deploying Uniswap V2 now, please wait ...");
+        let uniswapV2;
+        uniswapV2 = await web3.eth.sendTransaction({
             from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.uniswap_v2 = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-            var feeTo = newContractInstance.methods.feeTo().call()
-            feeTo.then(function(resultFeeTo) {
-                console.log("feeTo is currently set to: " + resultFeeTo);
+            data: uniswapV2Bytecode
+        }); // Charlie accounts[2] is the owner
+        console.log('>> uniswapV2:', uniswapV2.contractAddress);
+        let uniswapV2Instance = new web3.eth.Contract(uniswapV2Abi, uniswapV2.contractAddress);
+        uniswapV2Instance.deploy({
+                data: uniswapV2Bytecode,
+                arguments: [_feeToSetter]
             })
-            var feeToSetter = newContractInstance.methods.feeToSetter().call()
-            feeToSetter.then(function(resultFeeToSetter) {
-                console.log("feeToSetter is currently set to: " + resultFeeToSetter);
+            .send({
+                from: accounts[2],
+                gas: 4700000,
+                gasPrice: '1000'
+            }, function(error, transactionHash) {
+                console.log(transactionHash);
             })
-        });
-    // Uniswap V2 WETH
-    // V2 WETH Deployment
-    console.log("Deploying WETH now, please wait ...");
-    let uniswapWETH;
-    uniswapWETH = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapWETHBytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapWETHInstance = new web3.eth.Contract(uniswapWETHAbi, uniswapWETH.contractAddress);
-    uniswapWETHInstance.deploy({
-            data: uniswapWETHBytecode
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.weth = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-            var name = newContractInstance.methods.name().call()
-            name.then(function(resultName) {
-                console.log("Name set to: " + resultName);
+            .on('error', function(error) {
+                console.log(error);
+                reject();
             })
-            var symbol = newContractInstance.methods.symbol().call()
-            symbol.then(function(resultSymbol) {
-                console.log("Symbol set to: " + resultSymbol);
+            .on('transactionHash', function(transactionHash) {
+                console.log("1 Transaction hash: " + transactionHash);
             })
-            var totalSupply = newContractInstance.methods.totalSupply().call()
-            totalSupply.then(function(resultTotalSupply) {
-                console.log("Total Supply set to: " + resultTotalSupply);
+            .on('receipt', function(receipt) {
+                console.log("1 Contract address: " + receipt.contractAddress) // contains the new contract address
+                data_object.contract_address.uniswap_v2 = receipt.contractAddress;
+                let data_to_write = JSON.stringify(data_object, null, 2);
+                write_data(data_to_write);
             })
-        });
-
-    // Uniswap V2 ROUTER2
-    // V2 ROUTER2 Deployment
-    console.log("Deploying ROUTER2 now, please wait ...");
-    let uniswapROUTER2;
-    uniswapROUTER2 = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapRouterBytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapROUTER2Instance = new web3.eth.Contract(uniswapRouterAbi, uniswapROUTER2.contractAddress);
-    uniswapROUTER2Instance.deploy({
-            data: uniswapRouterBytecode,
-            arguments: [data_object.contract_address.uniswap_v2, data_object.contract_address.weth]
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.router = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-            var factoryVar = newContractInstance.methods.factory().call()
-            factoryVar.then(function(resultFactory) {
-                console.log("Router2's factory set to: " + resultFactory);
-            })
-            var wethVar = newContractInstance.methods.WETH().call()
-            wethVar.then(function(resultWeth) {
-                console.log("Router2's WETH set to: " + resultWeth);
-            })
-        });
-
-
-    // Uniswap V2 Multicall
-    // V2 Multicall Deployment
-    console.log("Deploying Multicall now, please wait ...");
-    let uniswapMulticall;
-    uniswapMulticall = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapMulticallBytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapMulticallInstance = new web3.eth.Contract(uniswapMulticallAbi, uniswapMulticall.contractAddress);
-    uniswapMulticallInstance.deploy({
-            data: uniswapMulticallBytecode
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.multicall = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-        });
-
-    // Uniswap V2 Migrator
-    // V2 Migrator Deployment
-    console.log("Deploying Migrator now, please wait ...");
-    let uniswapMigrator;
-    uniswapMigrator = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapMigratorBytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapMigratorInstance = new web3.eth.Contract(uniswapMigratorAbi, uniswapMigrator.contractAddress);
-    uniswapMigratorInstance.deploy({
-            data: uniswapMigratorBytecode,
-            arguments: [data_object.contract_address.uniswap_factory, data_object.contract_address.router]
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.migrator = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-        });
-
-
-    // V2 ENS registry Deployment
-    console.log("Deploying ENS registry now, please wait ...");
-    let ensRegistry;
-    ensRegistry = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: uniswapEnsRegistryBytecode
-    }); // Charlie accounts[2] is the owner
-    let uniswapEnsRegistryInstance = new web3.eth.Contract(uniswapEnsRegistryAbi, ensRegistry.contractAddress);
-    uniswapEnsRegistryInstance.deploy({
-            data: uniswapEnsRegistryBytecode,
-            arguments: [accounts[2]]
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.ens_registry = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-        });
-    // V2 Gas relay hub address
-    console.log("Deploying Gas relay hub address contract now, please wait ...");
-    let gasRelayHubAddress;
-    gasRelayHubAddress = await web3.eth.sendTransaction({
-        from: accounts[2],
-        data: gasRelayHubAddressBytecode
-    }); // Charlie accounts[2] is the owner
-    let gasRelayHubAddressInstance = new web3.eth.Contract(gasRelayHubAddressAbi, gasRelayHubAddress.contractAddress);
-    gasRelayHubAddressInstance.deploy({
-            data: gasRelayHubAddressBytecode
-        })
-        .send({
-            from: accounts[2],
-            gas: 4700000,
-            gasPrice: '30000000000'
-        }, function(error, transactionHash) {
-            console.log(transactionHash);
-        })
-        .on('error', function(error) {
-            console.log(error);
-        })
-        .on('transactionHash', function(transactionHash) {
-            console.log("Transaction hash: " + transactionHash);
-        })
-        .on('receipt', function(receipt) {
-            console.log("Contract address: " + receipt.contractAddress) // contains the new contract address
-            data_object.contract_address.gas_relay_hub_address = receipt.contractAddress;
-            let data_to_write = JSON.stringify(data_object, null, 2);
-            write_data(data_to_write);
-        })
-        .then(function(newContractInstance) {
-            console.log(newContractInstance.options.address) // instance with the new contract address
-        });
+            .then(function(newContractInstance) {
+                console.log(newContractInstance.options.address) // instance with the new contract address
+                var feeTo = newContractInstance.methods.feeTo().call()
+                feeTo.then(function(resultFeeTo) {
+                    console.log("feeTo is currently set to: " + resultFeeTo);
+                })
+                var feeToSetter = newContractInstance.methods.feeToSetter().call()
+                feeToSetter.then(function(resultFeeToSetter) {
+                    console.log("feeToSetter is currently set to: " + resultFeeToSetter);
+                })
+            }).then(new Promise(async (resolve1, reject1) => {
+                // Uniswap V2 WETH
+                // V2 WETH Deployment
+                console.log("Deploying WETH now, please wait ...");
+                let uniswapWETH;
+                uniswapWETH = await web3.eth.sendTransaction({
+                    from: accounts[2],
+                    data: uniswapWETHBytecode
+                }); // Charlie accounts[2] is the owner
+                console.log('>> uniswapWETH:', uniswapWETH.contractAddress);
+                let uniswapWETHInstance = new web3.eth.Contract(uniswapWETHAbi, uniswapWETH.contractAddress);
+                uniswapWETHInstance.deploy({
+                        data: uniswapWETHBytecode
+                    })
+                    .send({
+                        from: accounts[2],
+                        gas: 4700000,
+                        gasPrice: '1000'
+                    }, function(error, transactionHash) {
+                        console.log(transactionHash);
+                    })
+                    .on('error', function(error) {
+                        console.log(error);
+                        reject1();
+                    })
+                    .on('transactionHash', function(transactionHash) {
+                        console.log("2 Transaction hash: " + transactionHash);
+                    })
+                    .on('receipt', function(receipt) {
+                        console.log("2 Contract address: " + receipt.contractAddress) // contains the new contract address
+                        data_object.contract_address.weth = receipt.contractAddress;
+                        let data_to_write = JSON.stringify(data_object, null, 2);
+                        write_data(data_to_write);
+                    })
+                    .then(function(newContractInstance) {
+                        console.log(newContractInstance.options.address) // instance with the new contract address
+                        var name = newContractInstance.methods.name().call()
+                        name.then(function(resultName) {
+                            console.log("Name set to: " + resultName);
+                        })
+                        var symbol = newContractInstance.methods.symbol().call()
+                        symbol.then(function(resultSymbol) {
+                            console.log("Symbol set to: " + resultSymbol);
+                        })
+                        var totalSupply = newContractInstance.methods.totalSupply().call()
+                        totalSupply.then(function(resultTotalSupply) {
+                            console.log("Total Supply set to: " + resultTotalSupply);
+                        })
+                    }).then(new Promise(async (resolve2, reject2) => {
+                        // Uniswap V2 ROUTER2
+                        // V2 ROUTER2 Deployment
+                        console.log("Deploying ROUTER2 now, please wait ...");
+                        let uniswapROUTER2;
+                        uniswapROUTER2 = await web3.eth.sendTransaction({
+                            from: accounts[2],
+                            data: uniswapRouterBytecode
+                        }); // Charlie accounts[2] is the owner
+                        console.log('>> uniswapROUTER2:', uniswapROUTER2.contractAddress);
+                        let uniswapROUTER2Instance = new web3.eth.Contract(uniswapRouterAbi, uniswapROUTER2.contractAddress);
+                        uniswapROUTER2Instance.deploy({
+                            data: uniswapRouterBytecode,
+                            arguments: [data_object.contract_address.uniswap_v2, data_object.contract_address.weth]
+                        })
+                        .send({
+                            from: accounts[2],
+                            gas: 14700000,
+                            gasPrice: '1000'
+                        }, function(error, transactionHash) {
+                            console.log(transactionHash);
+                        })
+                        .on('error', function(error) {
+                            console.log(error);
+                            reject2();
+                        })
+                        .on('transactionHash', function(transactionHash) {
+                            console.log("3 Transaction hash: " + transactionHash);
+                        })
+                        .on('receipt', function(receipt) {
+                            console.log("3 Contract address: " + receipt.contractAddress) // contains the new contract address
+                            data_object.contract_address.router = receipt.contractAddress;
+                            let data_to_write = JSON.stringify(data_object, null, 2);
+                            write_data(data_to_write);
+                        })
+                        .then(function(newContractInstance) {
+                            console.log(newContractInstance.options.address) // instance with the new contract address
+                            var factoryVar = newContractInstance.methods.factory().call()
+                            factoryVar.then(function(resultFactory) {
+                                console.log("Router2's factory set to: " + resultFactory);
+                            })
+                            var wethVar = newContractInstance.methods.WETH().call()
+                            wethVar.then(function(resultWeth) {
+                                console.log("Router2's WETH set to: " + resultWeth);
+                            })
+                        }).then(new Promise(async (resolve3, reject3) => {
+                             // Uniswap V2 Migrator
+                            // V2 Migrator Deployment
+                            console.log("Deploying Migrator now, please wait ...");
+                            let uniswapMigrator;
+                            uniswapMigrator = await web3.eth.sendTransaction({
+                                from: accounts[2],
+                                data: uniswapMigratorBytecode
+                            }); // Charlie accounts[2] is the owner
+                            console.log('>> uniswapMigrator:', uniswapMigrator.contractAddress, data_object.contract_address);
+                            let uniswapMigratorInstance = new web3.eth.Contract(uniswapMigratorAbi, uniswapMigrator.contractAddress);
+                            uniswapMigratorInstance.deploy({
+                                    data: uniswapMigratorBytecode,
+                                    arguments: [data_object.contract_address.uniswap_factory, data_object.contract_address.router]
+                                })
+                                .send({
+                                    from: accounts[2],
+                                    gas: 4700000,
+                                    gasPrice: '1000'
+                                }, function(error, transactionHash) {
+                                    console.log(transactionHash);
+                                })
+                                .on('error', function(error) {
+                                    console.log(error);
+                                    reject3();
+                                })
+                                .on('transactionHash', function(transactionHash) {
+                                    console.log("4 Transaction hash: " + transactionHash);
+                                })
+                                .on('receipt', function(receipt) {
+                                    console.log("4 Contract address: " + receipt.contractAddress) // contains the new contract address
+                                    data_object.contract_address.migrator = receipt.contractAddress;
+                                    let data_to_write = JSON.stringify(data_object, null, 2);
+                                    write_data(data_to_write);
+                                })
+                                .then(function(newContractInstance) {
+                                    console.log(newContractInstance.options.address) // instance with the new contract address
+                                }).then(new Promise(async (resolve4, reject4) => {
+                                    // Uniswap V2 Multicall
+                                    // V2 Multicall Deployment
+                                    console.log("Deploying Multicall now, please wait ...");
+                                    let uniswapMulticall;
+                                    uniswapMulticall = await web3.eth.sendTransaction({
+                                        from: accounts[2],
+                                        data: uniswapMulticallBytecode
+                                    }); // Charlie accounts[2] is the owner
+                                    console.log('>> uniswapMulticall:', uniswapMulticall.contractAddress);
+                                    let uniswapMulticallInstance = new web3.eth.Contract(uniswapMulticallAbi, uniswapMulticall.contractAddress);
+                                    uniswapMulticallInstance.deploy({
+                                            data: uniswapMulticallBytecode
+                                        })
+                                        .send({
+                                            from: accounts[2],
+                                            gas: 47000000,
+                                            gasPrice: '1000'
+                                        }, function(error, transactionHash) {
+                                            console.log(transactionHash);
+                                        })
+                                        .on('error', function(error) {
+                                            console.log('!!', error);
+                                            reject4();
+                                        })
+                                        .on('transactionHash', function(transactionHash) {
+                                            console.log("5 Transaction hash: " + transactionHash);
+                                        })
+                                        .on('receipt', function(receipt) {
+                                            console.log("5 Contract address: " + receipt.contractAddress) // contains the new contract address
+                                            data_object.contract_address.multicall = receipt.contractAddress;
+                                            let data_to_write = JSON.stringify(data_object, null, 2);
+                                            write_data(data_to_write);
+                                        })
+                                        .then(function(newContractInstance) {
+                                            console.log('>>', newContractInstance.options.address) // instance with the new contract address
+                                        }).then(new Promise(async (resolve5, reject5) => {
+                                            // V2 ENS registry Deployment
+                                            console.log("Deploying ENS registry now, please wait ...");
+                                            let ensRegistry;
+                                            ensRegistry = await web3.eth.sendTransaction({
+                                                from: accounts[2],
+                                                data: uniswapEnsRegistryBytecode
+                                            }); // Charlie accounts[2] is the owner
+                                            console.log('>> ensRegistry:', ensRegistry.contractAddress);
+                                            let uniswapEnsRegistryInstance = new web3.eth.Contract(uniswapEnsRegistryAbi, ensRegistry.contractAddress);
+                                            uniswapEnsRegistryInstance.deploy({
+                                                    data: uniswapEnsRegistryBytecode,
+                                                    arguments: [accounts[2]]
+                                                })
+                                                .send({
+                                                    from: accounts[2],
+                                                    gas: 4700000,
+                                                    gasPrice: '1000'
+                                                }, function(error, transactionHash) {
+                                                    console.log(transactionHash);
+                                                })
+                                                .on('error', function(error) {
+                                                    console.log(error);
+                                                    reject5();
+                                                })
+                                                .on('transactionHash', function(transactionHash) {
+                                                    console.log("6 Transaction hash: " + transactionHash);
+                                                })
+                                                .on('receipt', function(receipt) {
+                                                    console.log("6 Contract address: " + receipt.contractAddress) // contains the new contract address
+                                                    data_object.contract_address.ens_registry = receipt.contractAddress;
+                                                    let data_to_write = JSON.stringify(data_object, null, 2);
+                                                    write_data(data_to_write);
+                                                })
+                                                .then(function(newContractInstance) {
+                                                    console.log(newContractInstance.options.address) // instance with the new contract address
+                                                }).then(new Promise(async (resolve6, reject6) => {
+                                                    // V2 Gas relay hub address
+                                                    console.log("Deploying Gas relay hub address contract now, please wait ...");
+                                                    let gasRelayHubAddress;
+                                                    gasRelayHubAddress = await web3.eth.sendTransaction({
+                                                        from: accounts[2],
+                                                        data: gasRelayHubAddressBytecode
+                                                    }); // Charlie accounts[2] is the owner
+                                                    console.log('>> gasRelayHubAddress:', gasRelayHubAddress.contractAddress);
+                                                    let gasRelayHubAddressInstance = new web3.eth.Contract(gasRelayHubAddressAbi, gasRelayHubAddress.contractAddress);
+                                                    gasRelayHubAddressInstance.deploy({
+                                                            data: gasRelayHubAddressBytecode
+                                                        })
+                                                        .send({
+                                                            from: accounts[2],
+                                                            gas: 4700000,
+                                                            gasPrice: '1000'
+                                                        }, function(error, transactionHash) {
+                                                            console.log(transactionHash);
+                                                        })
+                                                        .on('error', function(error) {
+                                                            console.log(error);
+                                                            reject6();
+                                                        })
+                                                        .on('transactionHash', function(transactionHash) {
+                                                            console.log("7 Transaction hash: " + transactionHash);
+                                                        })
+                                                        .on('receipt', function(receipt) {
+                                                            console.log("7 Contract address: " + receipt.contractAddress) // contains the new contract address
+                                                            data_object.contract_address.gas_relay_hub_address = receipt.contractAddress;
+                                                            let data_to_write = JSON.stringify(data_object, null, 2);
+                                                            write_data(data_to_write);
+                                                        })
+                                                        .then(function(newContractInstance) {
+                                                            console.log(newContractInstance.options.address) // instance with the new contract address
+                                                            resolve6();
+                                                            resolve5();
+                                                            resolve4();
+                                                            resolve3();
+                                                            resolve2();
+                                                            resolve1();
+                                                            resolve();
+                                                        });
+                                                 }));
+                                        }));
+                                }));
+                        }));
+              }));
+        }));
+    });
 
     let data_to_write = JSON.stringify(data_object, null, 2);
     await write_data(data_to_write);
